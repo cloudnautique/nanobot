@@ -11,6 +11,7 @@ import (
 
 	"github.com/obot-platform/nanobot/pkg/mcp"
 	"github.com/obot-platform/nanobot/pkg/runtime"
+	"github.com/obot-platform/nanobot/pkg/schema"
 	"github.com/obot-platform/nanobot/pkg/types"
 )
 
@@ -315,6 +316,8 @@ func (s *Server) handleInitialize(ctx context.Context, msg mcp.Message, payload 
 			return err
 		}
 	}
+
+	toolMappings = schema.ValidateToolMappings(toolMappings)
 	msg.Session.Set(toolMappingKey, toolMappings)
 
 	promptMappings, err := s.buildPromptMappings(ctx)

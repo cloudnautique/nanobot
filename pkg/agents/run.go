@@ -10,6 +10,7 @@ import (
 
 	"github.com/obot-platform/nanobot/pkg/confirm"
 	"github.com/obot-platform/nanobot/pkg/mcp"
+	"github.com/obot-platform/nanobot/pkg/schema"
 	"github.com/obot-platform/nanobot/pkg/tools"
 	"github.com/obot-platform/nanobot/pkg/types"
 )
@@ -47,7 +48,7 @@ func (a *Agents) addTools(ctx context.Context, req *types.CompletionRequest, age
 		tool := toolMapping.Target.(mcp.Tool)
 		req.Tools = append(req.Tools, types.ToolUseDefinition{
 			Name:        key,
-			Parameters:  tool.InputSchema,
+			Parameters:  schema.ValidateAndFixToolSchema(tool.InputSchema),
 			Description: tool.Description,
 			Attributes:  agent.ToolExtensions[key],
 		})
@@ -142,6 +143,12 @@ func (a *Agents) populateRequest(ctx context.Context, run *run, previousRun *run
 	toolMapping, err := a.addTools(ctx, &req, &agent)
 	if err != nil {
 		return req, nil, fmt.Errorf("failed to add tools: %w", err)
+	}
+
+	// Validate and fix tool input schemas
+	for i, tool := range req.Tools {
+		fixedSchema := schema.ValidateAndFixToolSchema(tool.Parameters)
+		req.Tools[i].Parameters = fixedSchema
 	}
 
 	return req, toolMapping, nil
